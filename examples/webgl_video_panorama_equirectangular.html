@@ -1,193 +1,148 @@
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title>three.js webgl - equirectangular video panorama</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<style>
-			body {
-				background-color: #000000;
-				margin: 0px;
-				overflow: hidden;
-			}
-
-			#info {
-				position: absolute;
-				top: 0px; width: 100%;
-				color: #ffffff;
-				padding: 5px;
-				font-family:Monospace;
-				font-size:13px;
-				font-weight: bold;
-				text-align:center;
-			}
-
-			a {
-				color: #ffffff;
-			}
-		</style>
-	</head>
-	<body>
-
-		<div id="container"></div>
-
-		<script src="../build/three.js"></script>
-
-		<script>
-
-			var camera, scene, renderer;
-
-			var texture_placeholder,
-			isUserInteracting = false,
-			onMouseDownMouseX = 0, onMouseDownMouseY = 0,
-			lon = 0, onMouseDownLon = 0,
-			lat = 0, onMouseDownLat = 0,
-			phi = 0, theta = 0,
-			distance = 500;
-
-			init();
-			animate();
-
-			function init() {
-
-				var container, mesh;
-
-				container = document.getElementById( 'container' );
-
-				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1100 );
-				camera.target = new THREE.Vector3( 0, 0, 0 );
-
-				scene = new THREE.Scene();
-
-				var geometry = new THREE.SphereBufferGeometry( 500, 60, 40 );
-				geometry.scale( - 1, 1, 1 );
-
-				var video = document.createElement( 'video' );
-				video.width = 640;
-				video.height = 360;
-				video.autoplay = true;
-				video.loop = true;
-				video.src = "textures/pano.webm";
-
-				var texture = new THREE.VideoTexture( video );
-				texture.minFilter = THREE.LinearFilter;
-				texture.format = THREE.RGBFormat;
-
-				var material   = new THREE.MeshBasicMaterial( { map : texture } );
-
-				mesh = new THREE.Mesh( geometry, material );
-
-				scene.add( mesh );
-
-				renderer = new THREE.WebGLRenderer();
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				container.appendChild( renderer.domElement );
-
-				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
-				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-				document.addEventListener( 'mouseup', onDocumentMouseUp, false );
-				document.addEventListener( 'mousewheel', onDocumentMouseWheel, false );
-				document.addEventListener( 'MozMousePixelScroll', onDocumentMouseWheel, false);
-
-				//
-
-				window.addEventListener( 'resize', onWindowResize, false );
-
-			}
-
-			function onWindowResize() {
-
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
-			}
-
-			function onDocumentMouseDown( event ) {
-
-				event.preventDefault();
-
-				isUserInteracting = true;
-
-				onPointerDownPointerX = event.clientX;
-				onPointerDownPointerY = event.clientY;
-
-				onPointerDownLon = lon;
-				onPointerDownLat = lat;
-
-			}
-
-			function onDocumentMouseMove( event ) {
-
-				if ( isUserInteracting === true ) {
-
-					lon = ( onPointerDownPointerX - event.clientX ) * 0.1 + onPointerDownLon;
-					lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
-
-				}
-
-			}
-
-			function onDocumentMouseUp( event ) {
-
-				isUserInteracting = false;
-
-			}
-
-			function onDocumentMouseWheel( event ) {
-
-				// WebKit
-
-				if ( event.wheelDeltaY ) {
-
-					distance -= event.wheelDeltaY * 0.05;
-
-				// Opera / Explorer 9
-
-				} else if ( event.wheelDelta ) {
-
-					distance -= event.wheelDelta * 0.05;
-
-				// Firefox
-
-				} else if ( event.detail ) {
-
-					distance += event.detail * 1.0;
-
-				}
-
-			}
-
-			function animate() {
-
-				requestAnimationFrame( animate );
-				update();
-
-			}
-
-			function update() {
-
-				lat = Math.max( - 85, Math.min( 85, lat ) );
-				phi = THREE.Math.degToRad( 90 - lat );
-				theta = THREE.Math.degToRad( lon );
-
-				camera.position.x = distance * Math.sin( phi ) * Math.cos( theta );
-				camera.position.y = distance * Math.cos( phi );
-				camera.position.z = distance * Math.sin( phi ) * Math.sin( theta );
-
-				camera.lookAt( camera.target );
-
-				/*
-				// distortion
-				camera.position.copy( camera.target ).negate();
-				*/
-
-				renderer.render( scene, camera );
-
-			}
-
-		</script>
-	</body>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Inline Movie on iPhone Safari</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+
+    <style type="text/css">
+        body {
+            background: #FFFFFF;
+        }
+        .movie {
+            text-align: center;
+        }
+        .control {
+            text-align: center;
+        }
+        .control button {
+            font-size: 24px;
+        }
+    </style>
+    <script src="../videojs-demo/three.min.js"></script>
+    <script src="../videojs-demo/CanvasRenderer.js"></script>
+    <script src="../videojs-demo/Projector.js"></script>
+    <script src="../videojs-demo/VRControls.js"></script>
+    <script src="../videojs-demo/webvr-polyfill.js"></script>
+    <script src="../videojs-demo/webvr-manager.js"></script>
+</head>
+<body>
+<div id="container" class="movie"></div>
+<div class="control">
+    <button>play/pause</button>
+</div>
+<script type="text/javascript">
+    window.onload = function(){
+        var btn = document.querySelector('button');
+        btn.disabled = true;
+        var video = document.createElement('video');
+        video.style.display = 'none';
+        video.loop = true;
+        document.body.appendChild(video);
+        var audio = new Audio();
+        var togglePlay;
+        var container = document.getElementById( 'container' );
+        var canvas;
+        var ctx;
+        var ctime = 0;
+        var lastTime;
+        var ua = navigator.userAgent;
+        var camera, scene, renderer, geometry, texture, mesh, renderer;
+        var controls;
+
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 1100);
+        camera.target = new THREE.Vector3(0, 0, 0);
+
+
+        scene = new THREE.Scene();
+        geometry = new THREE.SphereBufferGeometry(500, 60, 40);
+        geometry.scale(-1, 1, 1);
+
+        texture = new THREE.VideoTexture(video);
+        texture.minFilter = THREE.LinearFilter;
+        texture.format = THREE.RGBFormat;
+
+        material = new THREE.MeshBasicMaterial({map: texture});
+        mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+        scene.add(camera);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth*0.9, window.innerHeight*0.9);
+        container.appendChild( renderer.domElement );
+        canvas = renderer.domElement;
+        ctx = canvas.getContext("2d");
+
+        controls = new THREE.VRControls(camera);
+
+        function animate() {
+            texture.needsUpdate = true;
+            controls.update();
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+
+        if (/(iPhone|iPod)/.test(ua)) {
+            var prms1 = new Promise(function (resolve, reject) {
+                video.addEventListener('canplay', function () {
+                    resolve();
+                });
+                video.addEventListener('error', function () {
+                    reject();
+                    alert('failed loading video');
+                });
+            });
+            var prms2 = new Promise(function (resolve, reject) {
+                audio.addEventListener('canplay', function () {
+                    resolve();
+                });
+                audio.addEventListener('error', function () {
+                    reject();
+                    alert('failed loading audio');
+                });
+            });
+            Promise.all([prms1, prms2]).then(function () {
+                btn.disabled = false;
+            });
+            audio.src = '../video-1920x960.mp4';
+            audio.loop = true;
+            audio.load();
+            togglePlay = function () {
+                if (audio.paused) {
+                    audio.play();
+                    (function loop() {
+                        video.currentTime = audio.currentTime;
+                        texture.needsUpdate = true;
+                        controls.update();
+                        renderer.render(scene, camera);
+                        if (!audio.paused) {
+                            requestAnimationFrame(loop);
+                        }
+                    })();
+                } else {
+                    audio.pause();
+                }
+            };
+            btn.addEventListener('click', togglePlay);
+        } else {
+            btn.style.display = "none";
+            video.addEventListener('canplay', function () {
+                lastTime = Date.now();
+                video.play();
+                animate();
+            }, false);
+        }
+        video.src = '../video-1920x960.mp4';
+        video.load();
+        window.addEventListener( 'resize', onWindowResize, false );
+        function onWindowResize(){
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize( window.innerWidth*0.9, window.innerHeight*0.9);
+        }
+    }
+</script>
+</body>
 </html>
